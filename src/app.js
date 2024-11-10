@@ -13,7 +13,7 @@ morgan.format('custom', ':date[iso] :method :url');
 app.use(morgan('custom'));
 app.use(fileUpload());
 app.use(cors({ origin: process.env.CLIENT_API, credentials: true }));
-app.use("/public/uploads", express.static(path.join(__dirname, "/public/uploads")));
+// app.use("/public/uploads", express.static(path.join(__dirname, "/public/uploads")));
 app.use(express.json());
 
 cloudinary.config({

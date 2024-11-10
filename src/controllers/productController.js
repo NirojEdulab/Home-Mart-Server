@@ -1,10 +1,11 @@
 const productModel = require("../models/productModel");
 const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
+const path = require("path");
 
 async function createProduct(req, res) {
   const { name, measureUnit, category } = req.body;
-  const localFilePath = req.file?.path;
+  const file = req.files?.file;
 
   if (!name || !measureUnit || !category) {
     return res
@@ -16,15 +17,22 @@ async function createProduct(req, res) {
     let imageUrl = null;
 
     // Upload to Cloudinary if the file exists
-    if (localFilePath) {
-      const cloudinaryResponse = await cloudinary.uploader.upload(
-        localFilePath,
-        { resource_type: "auto" }
-      );
+    
+    
+    if (file) {
+      const tempFilePath = path.join(__dirname, "../temp", file.name);
+      await file.mv(tempFilePath);
+      
+      // Upload the file directly from memory to Cloudinary
+      const cloudinaryResponse = await cloudinary.uploader.upload(tempFilePath, {
+        resource_type: "auto",
+      });
+
       imageUrl = cloudinaryResponse.secure_url;
 
-      // Delete the local file after uploading to Cloudinary
-      fs.unlinkSync(localFilePath);
+      // Delete the temporary file after uploading to Cloudinary (optional, if required)
+      // fs.unlinkSync(file.tempFilePath);
+      fs.unlinkSync(tempFilePath);
     }
 
     const newProduct = await productModel.addProduct({
