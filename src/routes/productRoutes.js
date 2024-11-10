@@ -6,5 +6,7 @@ const upload = require('../middleware/multerConfig');
 // Route to add a new product
 router.post('/products', upload.single("file"), productController.createProduct);
 router.get('/products', productController.getAllProducts);
+router.get('/searchProducts', productController.searchProducts);
+router.delete('/product/:id', productController.deleteProduct);
 
 module.exports = router;
