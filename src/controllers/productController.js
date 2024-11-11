@@ -17,22 +17,19 @@ async function createProduct(req, res) {
     let imageUrl = null;
 
     // Upload to Cloudinary if the file exists
-    
-    
+
     if (file) {
-      const tempFilePath = path.join(__dirname, "../temp", file.name);
-      await file.mv(tempFilePath);
-      
-      // Upload the file directly from memory to Cloudinary
-      const cloudinaryResponse = await cloudinary.uploader.upload(tempFilePath, {
-        resource_type: "auto",
+      // Wrap the Cloudinary upload_stream in a Promise
+      imageUrl = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { resource_type: "auto" },
+          (error, result) => {
+            if (error) return reject(new Error("Cloudinary upload failed"));
+            resolve(result.secure_url); // Resolve with the image URL
+          }
+        );
+        stream.end(file.data); // Stream the file buffer directly to Cloudinary
       });
-
-      imageUrl = cloudinaryResponse.secure_url;
-
-      // Delete the temporary file after uploading to Cloudinary (optional, if required)
-      // fs.unlinkSync(file.tempFilePath);
-      fs.unlinkSync(tempFilePath);
     }
 
     const newProduct = await productModel.addProduct({
